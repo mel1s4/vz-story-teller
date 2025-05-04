@@ -168,8 +168,20 @@ function vz_story_teller_add_meta_boxes() {
     'normal',
     'high'
   );
+  add_meta_box(
+    'episode_details',
+    __( 'Episode Details', 'vz-story-teller' ),
+    'vz_story_teller_render_episode_meta_box',
+    'episode',
+    'normal',
+    'high'
+  );
 }
 add_action( 'add_meta_boxes', 'vz_story_teller_add_meta_boxes' );
+
+function vz_st_hierarchy_input( $hierarchy, $pt ) {
+  include (plugin_dir_path( __FILE__ ) . 'hierarchy_input.php');
+}
 
 // Render the custom meta box for the "Season" post type.
 function vz_story_teller_render_season_meta_box( $post ) {
@@ -179,37 +191,93 @@ function vz_story_teller_render_season_meta_box( $post ) {
   // Retrieve existing values from the database.
   $hierarchy = get_post_meta( $post->ID, '_season_episodes', true );
   vz_st_hierarchy_input( $hierarchy, "episode" );
-
-}
-
-function vz_st_hierarchy_input( $hierarchy, $pt ) {
-  include (plugin_dir_path( __FILE__ ) . 'hierarchy_input.php');
 }
 
 // Save the custom meta box data for the "Season" post type.
-
 function vz_story_teller_save_season_meta_box( $post_id ) {
   // Check if the nonce is set and valid.
   if ( ! isset( $_POST['vz_story_teller_season_meta_box_nonce'] ) || ! wp_verify_nonce( $_POST['vz_story_teller_season_meta_box_nonce'], 'vz_story_teller_save_season_meta_box' ) ) {
     return;
   }
-
   // Check if the user has permission to save the data.
   if ( ! current_user_can( 'edit_post', $post_id ) ) {
     return;
   }
+  $hierarchy_posts = $_POST['vzst-posts'];
+  $hierarchy_created = [];
+  foreach ( $hierarchy_posts as $p_id ) {
+    if ( empty( $p_id ) ) continue;
+    if ( is_numeric($p_id) ) {
+      $hierarchy_created[] = $p_id;
+    } else {
+      // Temporarily remove the save_post action to prevent infinite loop.
+      remove_action( 'save_post', 'vz_story_teller_save_season_meta_box' );
 
-  // Save the season number.
-  if ( isset( $_POST['season_number'] ) ) {
-    update_post_meta( $post_id, '_season_number', sanitize_text_field( $_POST['season_number'] ) );
-  }
+      $n_id = wp_insert_post( [
+        'post_title' => $p_id,
+        'post_type' => 'episode',
+      ]);
 
-  // Save the season description.
-  if ( isset( $_POST['season_description'] ) ) {
-    update_post_meta( $post_id, '_season_description', sanitize_textarea_field( $_POST['season_description'] ) );
+      // Re-add the save_post action.
+      add_action( 'save_post', 'vz_story_teller_save_season_meta_box' );
+
+      if ( ! is_wp_error( $n_id ) ) {
+        $hierarchy_created[] = $n_id;
+      }
+    }
   }
+  update_post_meta( $post_id, '_season_episodes', $hierarchy_created );
 }
 add_action( 'save_post', 'vz_story_teller_save_season_meta_box' );
+
+
+// Render the custom meta box for the "episode" post type.
+function vz_story_teller_render_episode_meta_box( $post ) {
+  // Add a nonce field for security.
+  wp_nonce_field( 'vz_story_teller_save_episode_meta_box', 'vz_story_teller_episode_meta_box_nonce' );
+
+  // Retrieve existing values from the database.
+  $hierarchy = get_post_meta( $post->ID, '_episode_scenes', true );
+  vz_st_hierarchy_input( $hierarchy, "scene" );
+}
+
+// Save the custom meta box data for the "episode" post type.
+function vz_story_teller_save_episode_meta_box( $post_id ) {
+  // Check if the nonce is set and valid.
+  if ( ! isset( $_POST['vz_story_teller_episode_meta_box_nonce'] ) || ! wp_verify_nonce( $_POST['vz_story_teller_episode_meta_box_nonce'], 'vz_story_teller_save_episode_meta_box' ) ) {
+    return;
+  }
+  // Check if the user has permission to save the data.
+  if ( ! current_user_can( 'edit_post', $post_id ) ) {
+    return;
+  }
+  $hierarchy_posts = $_POST['vzst-posts'];
+  $hierarchy_created = [];
+  foreach ( $hierarchy_posts as $p_id ) {
+    if ( empty( $p_id ) ) continue;
+    if ( is_numeric($p_id) ) {
+      $hierarchy_created[] = $p_id;
+    } else {
+      // Temporarily remove the save_post action to prevent infinite loop.
+      remove_action( 'save_post', 'vz_story_teller_save_episode_meta_box' );
+
+      $n_id = wp_insert_post( [
+        'post_title' => $p_id,
+        'post_type' => 'scene',
+      ]);
+
+      // Re-add the save_post action.
+      add_action( 'save_post', 'vz_story_teller_save_episode_meta_box' );
+
+      if ( ! is_wp_error( $n_id ) ) {
+        $hierarchy_created[] = $n_id;
+      }
+    }
+  }
+  update_post_meta( $post_id, '_episode_scenes', $hierarchy_created );
+}
+add_action( 'save_post', 'vz_story_teller_save_episode_meta_box' );
+
 
 // Enqueue scripts and styles for the plugin.
 function vz_story_teller_enqueue_scripts( $hook ) {

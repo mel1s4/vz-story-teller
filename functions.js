@@ -22,6 +22,8 @@ document.addEventListener("click", (e) =>  {
         option.remove();
       }
       postTitle.removeAttribute("disabled");
+    } else {
+      clone.querySelector(".post_id").value = title;
     }
     postTitle.value = "";
   }
