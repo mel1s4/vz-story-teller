@@ -30,8 +30,24 @@ function vz_story_teller_init() {
 
   // Register custom post types and taxonomies.
   vz_story_teller_register_post_types();
+
+  // Add a custom page to the admin menu called "Story Teller".
+  add_menu_page(
+    __( 'Story Teller', 'vz-story-teller' ),
+    __( 'Story Teller', 'vz-story-teller' ),
+    'manage_options',
+    'vz-story-teller',
+    'vz_story_teller_page',
+    'dashicons-book-alt', // Icon for the menu item.
+    6 // Position in the menu.
+  );
 }
 add_action( 'init', 'vz_story_teller_init' );
+
+function vz_story_teller_page() {
+
+  include (plugin_dir_path( __FILE__ ) . 'script_writer_input.php');
+}
 
 // prevent direct access to any of the post types
 function vz_story_teller_prevent_direct_access() {
@@ -94,8 +110,7 @@ function vz_story_teller_register_post_types() {
     ),
     'public' => true,
     'has_archive' => false,
-    'supports' => array( 'title', 'editor', 'thumbnail' ),
-    'show_in_rest' => true, // Enable Gutenberg editor
+    'supports' => array( 'title', 'thumbnail' ),
   ) );
 
   // Arc
@@ -279,6 +294,7 @@ function vz_story_teller_save_episode_meta_box( $post_id ) {
 add_action( 'save_post', 'vz_story_teller_save_episode_meta_box' );
 
 
+
 // Enqueue scripts and styles for the plugin.
 function vz_story_teller_enqueue_scripts( $hook ) {
   // Only enqueue on specific admin pages if needed.
@@ -295,6 +311,23 @@ function vz_story_teller_enqueue_scripts( $hook ) {
       'vz-story-teller-admin-style',
       plugin_dir_url( __FILE__ ) . 'styles.css',
       array(),
+      '1.0.0'
+    );
+  }
+
+  // Enqueue scripts and styles for the script writer page only
+  if ( 'toplevel_page_vz-story-teller' === $hook ) {
+    wp_enqueue_script(
+      'vz-story-teller-script-writer',
+      plugin_dir_url( __FILE__ ) . 'script_writer/dist/assets/index.js',
+      array( 'wp-api-fetch' ),
+      '1.0.0',
+      true
+    );
+    wp_enqueue_style(
+      'vz-story-teller-script-writer',
+      plugin_dir_url( __FILE__ ) . 'script_writer/dist/assets/index.css',
+      [],
       '1.0.0'
     );
   }
