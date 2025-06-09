@@ -1,34 +1,16 @@
 import { useState, useEffect, useRef } from 'react'
 import './App.css'
 import api from './api.js';
-import SeasonsNavigation from './components/SeasonsNavigation.jsx';
+import ScriptNavigation from './components/ScriptNavigation.jsx';
 
 function App() {
   const [selectedIndex, setSelectedIndex] = useState(0); // selected index for navigation
   const [mode, setMode] = useState(0); // 0: move, 1: write
+  const [seasons, setSeasons] = useState([]); // seasons data
+  const [currentSeasonOrder, setCurrentSeasonOrder] = useState(0); // current season order
   const [script, setScript] = useState([{
     title: "Title",
     type: "title",
-    content: ""
-  }, {
-    title: "Subtitle",
-    type: "subtitle",
-    content: ""
-  }, {
-    title: "Slug Line",
-    type: "slug",
-    content: ""
-  }, {
-    title: "Action",
-    type: "action",
-    content: ""
-  }, {
-    title: "Character",
-    type: "character",
-    content: ""
-  }, {
-    title: "Dialogue",
-    type: "dialogue",
     content: ""
   }]);
   const exampledata = {
@@ -220,13 +202,14 @@ function App() {
 
   const handleShortcuts = (event) => {
     const currentElement = script[selectedIndex];
-    console.log("Key pressed:", event);
     // If the user presses 'Enter', insert a new element after the current one
     if (event.key === 'Enter' && event.shiftKey) {
       // do nothing, allow multiline input
       return;
     }
     if (event.key === 'Enter' && event.altKey) {
+      event.preventDefault(); // Prevent default behavior of Enter key
+      // If alt + Enter is pressed insert the same element after the current one
       insertElementAfter(selectedIndex, currentElement.type);
       return;
     }
@@ -326,7 +309,6 @@ function App() {
       type = nextTypeOf(otype);
     }
     const newElement = {
-      title: "",
       type,
       content: ""
     };
@@ -359,7 +341,6 @@ function App() {
     });
     e.target.style.height = 'auto';
     e.target.style.height = e.target.scrollHeight + 'px';
-    console.log(e.target.scrollHeight, "scrollHeight");
   }
 
   function changeSelectedElementType(type = null) {
@@ -383,10 +364,63 @@ function App() {
   }
 
 
+  async function saveElement(e, element, index) {
+    if (e.target.value.trim() === "") {
+      console.warn("Content is empty, not saving element.");
+      return;
+    }
+    const args = {
+      ...element
+    };
+    try {
+      const response = await api.post('save-script-element', {
+        ...element,
+        index,
+      });
+      console.log("Element saved successfully:", response.data);
+    } catch (response) {
+      console.error("Failed to save element:", response);
+    }
+  }
+
+  useEffect(() => {
+    fetchScript();
+  }, []);
+
+  async function fetchScript() {
+    try {
+      const response = await api.get('get-script');
+      if (response && response.data) {
+        console.log(response.data);
+        if (response.data.seasons && response.data.seasons.length > 0) {
+          setSeasons(response.data.seasons);
+        }
+      } else {
+        console.error("No data received from API");
+      }
+    } catch (error) {
+      console.error("Error fetching script:", error);
+    }
+  }
+
+  function navFormattedScript() {
+    const formattedScript = [];
+    seasons.forEach(season => {
+      const seasonItem = {
+        title: season.title,
+        id: season.id,
+        episodes: []
+      };
+      formattedScript.push(seasonItem);
+    });
+
+    return { seasons: formattedScript };
+  }
+
   return (
     <main className="script-writer">
       <section className="story-navigation">
-        <SeasonsNavigation seasons={exampledata.seasons} />
+        <ScriptNavigation script={navFormattedScript()} />
         <div className="element-indicators">
           <ul className="elements-list">
             {writingTypes.map((type, index) => (
@@ -402,31 +436,38 @@ function App() {
         </div>
       </section>
       <section className="script">
-        {script.map((element, index) => (
-          <div key={index}
-            onFocus={() => selectScriptElement(index)}
-            className={element.type}>
-            {element.type === "slug" && (
-              <div className="slug-index">
-                <p className="slugIdx --left">
-                  {SceneNumber(index)}
-                </p>
-                <p className="slugIdx --right">
-                  {SceneNumber(index)}
-                </p>
+        <ul className="script-list">
+          {script.map((element, index) => (
+            <li key={index}
+              onFocus={() => selectScriptElement(index)}
+              className={`script-item ${element.type}`}>
+              {element.type === "slug" && (
+                <div className="slug-index">
+                  <p className="slugIdx --left">
+                    {SceneNumber(index)}
+                  </p>
+                  <p className="slugIdx --right">
+                    {SceneNumber(index)}
+                  </p>
+                </div>
+              )}
+              <div className="script-item__container">
+
+                <textarea className="content edit-area"
+                  value={element.content}
+                  onChange={(e) => editAreaOnChange(e, element, index)}
+                  rows="1"
+                  placeholder=""
+                  onLoad={(e) => {
+                    e.target.style.height = 'auto';
+                    e.target.style.height = e.target.scrollHeight + 'px';
+                  }}
+                  onBlur={(e) => saveElement(e, element, index)}
+                ></textarea>
               </div>
-            )}
-            <textarea className="content edit-area"
-              value={element.content}
-              onChange={(e) => editAreaOnChange(e, element, index)}
-              rows="1"
-              onLoad={(e) => {
-                e.target.style.height = 'auto';
-                e.target.style.height = e.target.scrollHeight + 'px';
-              }}
-            ></textarea>
-          </div>
-        ))}
+            </li>
+          ))}
+        </ul>
       </section>
     </main>
   )

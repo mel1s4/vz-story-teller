@@ -1,16 +1,16 @@
 import { React, useState } from 'react';
 
-function SeasonsNavigation({ seasons, onSeasonChange }) {
-  const [selectedSeason, setSelectedSeason] = useState(seasons[0]);
+function ScriptNavigation({ script, onSelect }) {
+  // const [selectedSeason, setSelectedSeason] = useState(seasons[0]);
 
-  const handleSeasonChange = (season) => {
+  const handleSeasonChange = (script) => {
     setSelectedSeason(season);
-    onSeasonChange(season);
+    onSelect(season);
   };
 
   return (
     <ul className="seasons">
-      {seasons.map((season, index) => (
+      {script.seasons.map((season, index) => (
         <li key={index} className="season-item">
           <button onClick={() => toggleNav('season', index)}>{season.title}</button>
           <ul className="episodes">
@@ -33,4 +33,4 @@ function SeasonsNavigation({ seasons, onSeasonChange }) {
   );
 }
 
-export default SeasonsNavigation;
+export default ScriptNavigation;

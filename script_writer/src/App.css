@@ -10,9 +10,19 @@
 }
 
 .script {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
+
+  .script-list {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    list-style: none;
+    padding: 0;
+  }
+
+  .script-item__container {
+    border-radius: 0.4em;
+    overflow: hidden;
+  }
 
   .title {
     margin: 3rem 0;
@@ -82,16 +92,25 @@
     height: auto;
   }
 
-  textarea.content {
-    background-color: #E0e0e0;
+  .edit-area {
     border: none;
     border-radius: 0.4em;
     resize: none;
     text-align: inherit;
+    overflow: hidden;
 
     &:focus {
       outline: none;
+      background-color: #E0e0e0;
     }
+
+    &::-webkit-input-placeholder,
+    &::-moz-placeholder,
+    &::placeholder {
+      border-radius: 0.4em;
+      background-color: #E0e0e0;
+    }
+
   }
 }
 
