@@ -1,11 +1,36 @@
 import { useState, useEffect, useRef } from 'react'
 import './App.css'
+import api from './api.js';
+import SeasonsNavigation from './components/SeasonsNavigation.jsx';
 
 function App() {
-  const [weIndex, setWeIndex] = useState(0); // writing element index
+  const [selectedIndex, setSelectedIndex] = useState(0); // selected index for navigation
   const [mode, setMode] = useState(0); // 0: move, 1: write
-  const [txtarea, setTextarea] = useState('');
-  const [script, setScript] = useState([]);
+  const [script, setScript] = useState([{
+    title: "Title",
+    type: "title",
+    content: ""
+  }, {
+    title: "Subtitle",
+    type: "subtitle",
+    content: ""
+  }, {
+    title: "Slug Line",
+    type: "slug",
+    content: ""
+  }, {
+    title: "Action",
+    type: "action",
+    content: ""
+  }, {
+    title: "Character",
+    type: "character",
+    content: ""
+  }, {
+    title: "Dialogue",
+    type: "dialogue",
+    content: ""
+  }]);
   const exampledata = {
     seasons: [
       {
@@ -166,102 +191,69 @@ function App() {
       }
     ]
   };
-  const writingElements = [
+  const writingTypes = [
     {
       title: "Title",
-      name: "title",
+      type: "title",
     },
     {
       title: "Subtitle",
-      name: "subtitle",
+      type: "subtitle",
     },
     {
       title: "Slug Line",
-      name: "slug",
+      type: "slug",
     },
     {
       title: "Action",
-      name: "action",
+      type: "action",
     },
     {
       title: "Character",
-      name: "character",
+      type: "character",
     },
     {
       title: "Dialogue",
-      name: "dialogue",
+      type: "dialogue",
     }
   ];
 
-  function textareaOnChange(e) {
-    const value = e.target.value;
-    setTextarea(value);
-    if (e.nativeEvent.inputType === "insertLineBreak") {
-      //if current element is title, subtitle or slug, select the next writing element
-      const ifThisSelectNext = ["title", "subtitle", "slug", "character"];
-      if (ifThisSelectNext.includes(selectedWE().name)) {
-        selectNextWe();
-      }
-
-      saveElement();
-    }
-  }
-
-  function clearTextarea() {
-    setTextarea('');
-  }
-
-  function saveElement() {
-    console.log(txtarea, "ex")
-    const newElement = {
-      title: selectedWE().title,
-      name: selectedWE().name,
-      content: txtarea
-    };
-
-    setScript(prevDocument => {
-      const nDocument = [...prevDocument, newElement];
-      console.log(nDocument);
-      return nDocument;
-    });
-
-    // Clear the textarea after saving
-    clearTextarea();
-  }
-
-  function selectPrevWe() {
-    if (weIndex > 0) {
-      setWeIndex(weIndex - 1);
-    } else {
-      let idx = writingElements.length - 1;
-      setWeIndex(idx);
-    }
-  }
-
-  function selectNextWe() {
-    // console.log("selectNextWe", weIndex, writingElements.length);
-    if (weIndex < writingElements.length - 1) {
-      // console.log("incrementing weIndex");
-      setWeIndex(weIndex + 1);
-    } else {
-      setWeIndex(0);
-    }
-  }
-
   const handleShortcuts = (event) => {
-    if (document.activeElement === textareaRef.current) {
-      if (event.key === "Tab" && !event.shiftKey) {
-        event.preventDefault();
-        if (selectedWE().name === "dialogue") {
-          setWeIndex(3); // Switch to Action
-        } else {
-          selectNextWe();
-        }
+    const currentElement = script[selectedIndex];
+    console.log("Key pressed:", event);
+    // If the user presses 'Enter', insert a new element after the current one
+    if (event.key === 'Enter' && event.shiftKey) {
+      // do nothing, allow multiline input
+      return;
+    }
+    if (event.key === 'Enter' && event.altKey) {
+      insertElementAfter(selectedIndex, currentElement.type);
+      return;
+    }
+    if (event.key === 'Enter') {
+      event.preventDefault(); // Prevent default behavior of Enter key
+      if (currentElement) {
+        insertElementAfter(selectedIndex, currentElement.type, true);
       }
-      if (event.key === "Tab" && event.shiftKey) {
-        event.preventDefault();
-        selectPrevWe();
+      return;
+    }
+    if (event.key === 'Backspace' && script[selectedIndex].content === "") {
+      // If backspace is pressed and the content is empty, remove the element
+      if (selectedIndex > 0) {
+        setScript(prevScript => {
+          const updatedScript = [...prevScript];
+          updatedScript.splice(selectedIndex, 1);
+          return updatedScript;
+        });
+        selectScriptElement(selectedIndex - 1);
       }
+      return;
+    }
+    // if alt + p is pressed, change type to next type
+    if (event.altKey && event.key === 'p') {
+      event.preventDefault(); // Prevent default behavior
+      changeSelectedElementType();
+      return;
     }
   };
 
@@ -271,16 +263,16 @@ function App() {
     return () => {
       window.removeEventListener('keydown', handleShortcuts);
     };
-  }, [weIndex, mode]);
+  }, [script, selectedIndex, mode]);
 
-  const selectedWE = () => {
-    return writingElements[weIndex];
+  function selectedElement() {
+    return script[selectedIndex];
   }
 
-  function totalSlugs(index) {
+  function SceneNumber(index) {
     let count = 0;
     for (let i = 0; i < script.length; i++) {
-      if (script[i].name === "slug") {
+      if (script[i].type === "slug") {
         count++;
       }
       if (i === index) {
@@ -297,30 +289,65 @@ function App() {
       textareaRef.current.style.height = 'auto';
       textareaRef.current.style.height = textareaRef.current.scrollHeight + 'px';
     }
-  }, [txtarea, weIndex]);
+    const textarea = document.querySelectorAll('.edit-area')[selectedIndex];
+    if (textarea) {
+      textarea.focus();
+      textarea.style.height = 'auto';
+      textarea.style.height = textarea.scrollHeight + 'px';
+    }
+  }, [selectedIndex]);
 
-  function toggleNav(type, index) {
-    console.log(`Toggling ${type} navigation at index ${index}`);
-    const navItems = document.querySelectorAll(`.${type}-item`);
-    navItems.forEach((item, idx) => {
-      if (idx === index) {
-        item.classList.toggle('--active');
-      } else {
-        item.classList.remove('--active');
-      }
-    });
-
+  function nextTypeOf(eName) {
+    switch (eName) {
+      case "title":
+        return "subtitle";
+      case "subtitle":
+        return "slug";
+      case "slug":
+        return "action";
+      case "action":
+        return "character";
+      case "character":
+        return "dialogue";
+      case "dialogue":
+        return "title"; // Loop back to slug after dialogue
+      default:
+        return "title"; // Default case, should not happen
+    }
+    return "title";
   }
 
-  function selectScene(sceneIndex) {
-    console.log(`Selecting scene at index ${sceneIndex}`);
+  function insertElementAfter(index, otype, toggle = false) {
+    if (index == script.length - 1) {
+      console.log("Inserting new element at the end of the script");
+    }
+    let type = otype;
+    if (toggle) {
+      type = nextTypeOf(otype);
+    }
+    const newElement = {
+      title: "",
+      type,
+      content: ""
+    };
+    console.log("Inserting new element after index:", index, "of type:", type);
+    if (index < 0 || index >= script.length) {
+      console.error("Index out of bounds for script array");
+      return;
+    }
+    setScript(prevScript => {
+      const updatedScript = [...prevScript];
+      updatedScript.splice(index + 1, 0, newElement);
+      return updatedScript;
+    });
+    setSelectedIndex(index + 1);
+  }
+
+  function selectScriptElement(index) {
+    setSelectedIndex(index);
   }
 
   function editAreaOnChange(e, element, index) {
-    if (e.nativeEvent.inputType === "insertLineBreak") {
-      textareaRef.current.focus();
-      return;
-    }
     const newContent = e.target.value;
     setScript(prevScript => {
       const updatedScript = [...prevScript];
@@ -335,39 +362,40 @@ function App() {
     console.log(e.target.scrollHeight, "scrollHeight");
   }
 
+  function changeSelectedElementType(type = null) {
+    const newElement = selectedElement();
+    if (!type) {
+      const currentType = newElement.type;
+      newElement.type = nextTypeOf(currentType);
+    } else {
+      newElement.type = type;
+    }
+    setScript(prevScript => {
+      const updatedScript = [...prevScript];
+      updatedScript[selectedIndex] = newElement;
+      return updatedScript;
+    });
+
+  }
+
+  function typeIsSelected(type) {
+    return selectedElement().type === type;
+  }
+
+
   return (
     <main className="script-writer">
       <section className="story-navigation">
-        <ul className="seasons">
-          {exampledata.seasons.map((season, index) => (
-            <li key={index} className="season-item">
-              <button onClick={() => toggleNav('season', index)}>{season.title}</button>
-              <ul className="episodes">
-                {season.episodes.map((episode, epIndex) => (
-                  <li key={epIndex} className="episode-item">
-                    <button onClick={() => toggleNav('episode', epIndex)}>{episode.title}</button>
-                    <ul className="scenes">
-                      {episode.scenes.map((scene, sceneIndex) => (
-                        <li key={sceneIndex} className="scene-item">
-                          <button onClick={() => selectScene(sceneIndex)}>{scene.title}</button>
-                        </li>
-                      ))}
-                    </ul>
-                  </li>
-                ))}
-              </ul>
-            </li>
-          ))}
-        </ul>
+        <SeasonsNavigation seasons={exampledata.seasons} />
         <div className="element-indicators">
           <ul className="elements-list">
-            {writingElements.map((element, index) => (
+            {writingTypes.map((type, index) => (
               <li
                 key={index}
-                className={`element-item ${weIndex === index ? '--active' : ''}`}
-                onClick={() => setWeIndex(index)}
+                className={`element-item ${typeIsSelected(type.type) ? '--active' : ''}`}
+                onClick={() => changeSelectedElementType(type.type)}
               >
-                {element.title}
+                {type.title}
               </li>
             ))}
           </ul>
@@ -375,14 +403,16 @@ function App() {
       </section>
       <section className="script">
         {script.map((element, index) => (
-          <div key={index} className={element.name}>
-            {element.name === "slug" && (
+          <div key={index}
+            onFocus={() => selectScriptElement(index)}
+            className={element.type}>
+            {element.type === "slug" && (
               <div className="slug-index">
                 <p className="slugIdx --left">
-                  {totalSlugs(index)}
+                  {SceneNumber(index)}
                 </p>
                 <p className="slugIdx --right">
-                  {totalSlugs(index)}
+                  {SceneNumber(index)}
                 </p>
               </div>
             )}
@@ -397,26 +427,6 @@ function App() {
             ></textarea>
           </div>
         ))}
-        <div className={selectedWE().name + " --placeholder"}>
-          {selectedWE().name === "slug" && (
-            <div className="slug-index">
-              <p className="slugIdx --left">
-                {totalSlugs(script.length) + 1}
-              </p>
-              <p className="slugIdx --right">
-                {totalSlugs(script.length) + 1}
-              </p>
-            </div>
-          )}
-          <textarea
-            id="warea"
-            ref={textareaRef}
-            value={txtarea}
-            className="content"
-            onChange={textareaOnChange}
-            rows="1"
-          ></textarea>
-        </div>
       </section>
     </main>
   )

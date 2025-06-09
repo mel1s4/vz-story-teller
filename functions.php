@@ -23,8 +23,13 @@ if ( ! defined( 'ABSPATH' ) ) {
   exit;
 }
 
+require_once plugin_dir_path( __FILE__ ) . 'endpoints.php';
+
 // Plugin initialization code.
 function vz_story_teller_init() {
+  // allow cros origin requests
+
+
   // Load the text domain for translations.
   load_plugin_textdomain( 'vz-story-teller', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
 
@@ -292,7 +297,6 @@ function vz_story_teller_save_episode_meta_box( $post_id ) {
   update_post_meta( $post_id, '_episode_scenes', $hierarchy_created );
 }
 add_action( 'save_post', 'vz_story_teller_save_episode_meta_box' );
-
 
 
 // Enqueue scripts and styles for the plugin.
