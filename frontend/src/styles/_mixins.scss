@@ -1,0 +1,142 @@
+// Forward variables so they're available to files that import this mixins file
+@forward './variables';
+// Also use variables for this file
+@use './variables' as *;
+
+// Button Mixin
+@mixin button($bg-color: $color-primary, $hover-color: $color-primary-dark) {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-xs;
+  padding: $spacing-xs $spacing-lg;
+  background: $bg-color;
+  color: $color-white;
+  border: none;
+  border-radius: $border-radius-sm;
+  cursor: pointer;
+  font-size: $font-size-sm;
+  transition: $transition-all;
+
+  svg {
+    flex-shrink: 0;
+  }
+
+  &:hover {
+    background: $hover-color;
+  }
+
+  &:active {
+    transform: translateY(1px);
+  }
+}
+
+// Input Field Mixin
+@mixin input-field {
+  padding: $spacing-xs;
+  border: 1px solid $color-border;
+  border-radius: $border-radius-sm;
+  font-size: $font-size-sm;
+
+  &:focus {
+    outline: none;
+    border-color: $color-primary;
+  }
+}
+
+// Select Field Mixin
+@mixin select-field {
+  @include input-field;
+  background: $color-white;
+  cursor: pointer;
+}
+
+// Flexbox Center
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+// Flexbox Between
+@mixin flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+// Slide Down Animation
+@mixin slide-down-animation {
+  animation: slideDown $transition-fast ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-100%);
+    opacity: $opacity-hidden;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: $opacity-visible;
+  }
+}
+
+// Hover Lift Effect
+@mixin hover-lift {
+  transition: $transition-all;
+
+  &:hover {
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+// Hidden until Hover
+@mixin hidden-on-idle {
+  opacity: $opacity-hidden;
+  transition: opacity $transition-fast;
+
+  &:hover {
+    opacity: 1;
+  }
+}
+
+// Word Wrap
+@mixin word-wrap {
+  word-break: break-word;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  hyphens: auto;
+}
+
+// Absolute Positioning Helper
+@mixin absolute($top: null, $right: null, $bottom: null, $left: null) {
+  position: absolute;
+
+  @if $top {
+    top: $top;
+  }
+
+  @if $right {
+    right: $right;
+  }
+
+  @if $bottom {
+    bottom: $bottom;
+  }
+
+  @if $left {
+    left: $left;
+  }
+}
+
+// Reset List
+@mixin list-reset {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}

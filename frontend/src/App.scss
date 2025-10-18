@@ -1,0 +1,81 @@
+.script-item {
+  position: relative;
+  padding-left: 30px;
+
+  .drag-handle {
+    position: absolute;
+    left: 0;
+    top: 0;
+    opacity: 0;
+    cursor: grab;
+
+    &:active {
+      cursor: grabbing;
+    }
+  }
+
+  &:hover {
+    .drag-handle {
+      opacity: 1;
+    }
+
+    .script-item__label input {
+      opacity: 1;
+    }
+  }
+
+  .script-item__label {
+    cursor: pointer;
+    position: absolute;
+    left: 10px;
+    top: 0;
+  }
+
+  .script-item__label input {
+    opacity: 0;
+  }
+
+  .script-item__label input:checked {
+    opacity: 1;
+  }
+
+}
+
+.script-item__value {
+  width: 100%;
+  word-break: break-word;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  hyphens: auto;
+  text-align: left;
+  margin: 0 auto;
+}
+
+.--header .script-item__value {
+  font-size: 2rem;
+}
+
+
+.--subtitle .script-item__value {
+  font-size: 1.5rem;
+}
+
+.--slugline .script-item__value {
+  font-size: 1.25rem;
+}
+
+.--action .script-item__value {
+  font-size: 1rem;
+}
+
+.--character .script-item__value {
+  font-size: 1rem;
+  max-width: 12rem;
+  text-align: center;
+}
+
+.--dialog .script-item__value {
+  font-size: 1rem;
+  max-width: 12rem;
+}

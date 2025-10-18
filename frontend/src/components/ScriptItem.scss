@@ -1,0 +1,270 @@
+@use '../styles/mixins' as *;
+
+.script-item {
+  position: relative;
+  padding-left: 2em;
+  margin: 0.5em 0;
+  font-size: $font-size-lg;
+  display: flex;
+  flex-flow: column;
+  justify-content: center;
+
+  .drag-handle {
+    @include absolute($top: calc(50% + 2px), $left: 0);
+    @include hidden-on-idle;
+    transform: translateY(-50%);
+    cursor: grab;
+    display: flex;
+    align-items: center;
+    color: #999;
+    font-size: $font-size-sm;
+
+    &:hover {
+      color: $color-primary;
+    }
+
+    &:active {
+      cursor: grabbing;
+      color: $color-primary-dark;
+    }
+  }
+
+  &:hover {
+    .drag-handle {
+      opacity: $opacity-visible;
+    }
+
+    .script-item__label input {
+      opacity: $opacity-visible;
+    }
+
+    .script-item__delete {
+      opacity: 1;
+    }
+  }
+
+  &.selected {
+    background-color: rgba($color-primary, $opacity-selected);
+    border-left: 3px solid $color-primary;
+  }
+
+  &.dragging {
+    opacity: $opacity-dragging;
+    cursor: grabbing;
+  }
+
+  &.drag-over {
+    border-top: 2px solid $color-primary;
+  }
+
+  .script-item__label {
+    // multiple selection checkbox
+    cursor: pointer;
+    @include absolute($top: 50%, $left: 1em);
+    transform: translateY(-50%);
+
+    input {
+      @include hidden-on-idle;
+
+      &:checked {
+        opacity: $opacity-visible;
+      }
+    }
+  }
+
+  .script-item__value {
+    @include word-wrap;
+    width: 100%;
+    text-align: left;
+    margin: 0 auto;
+    cursor: pointer;
+    height: auto;
+    font-family: monospace;
+    transition: all 0.2s ease-in-out;
+    padding: 0.3em 0.8em;
+
+    &:focus {
+      // outline: none;
+      //border: none;
+      box-shadow: none;
+    }
+  }
+}
+
+.script-item__content-wrapper {
+  display: flex;
+  margin: 0 auto;
+  width: 100%;
+  gap: 0.5em;
+  align-items: center;
+}
+
+// Header
+.script-item.--header {
+  margin: 3em 0;
+
+  .script-item__value {
+    font-size: $font-size-2xl;
+    text-align: center;
+    font-weight: bold;
+  }
+}
+
+// Subtitle
+.script-item.--subtitle {
+  margin: 2em 0;
+  color: #666;
+
+  .script-item__value {
+    font-size: $font-size-xl;
+    text-align: center;
+  }
+}
+
+// Slugline
+.script-item.--slugline {
+  .script-item__value {
+    text-transform: uppercase;
+    font-size: $font-size-base;
+    padding-left: 2em;
+    padding-right: 2em;
+    font-weight: bold;
+  }
+}
+
+// Action
+.script-item.--action {
+  .script-item__value {
+    font-size: $font-size-base;
+    padding-left: 2em;
+    padding-right: 2em;
+  }
+}
+
+// Character
+.script-item.--character {
+
+
+  .script-item__value {
+    font-size: $font-size-base;
+    max-width: 12rem;
+    text-transform: uppercase;
+    text-align: center;
+    margin: 0 auto;
+  }
+}
+
+// Dialog
+.script-item.--dialog {
+
+  .script-item__value {
+    font-size: $font-size-base;
+    max-width: 18rem;
+    margin: 0 auto;
+  }
+}
+
+.script-item__value {
+  margin: 0 auto;
+  display: block;
+  padding: 0.3em 0.8em;
+  flex-grow: 1;
+}
+
+.script-item__input {
+  border: none;
+  outline: none;
+  background-color: transparent;
+  border-radius: $border-radius-md;
+  padding: 0;
+  margin: 0;
+  resize: none;
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  min-height: 0;
+  max-height: 20em;
+  height: auto;
+  transition: all 0.2s ease-in-out, height 0.1s ease-out;
+  width: 100%;
+  vertical-align: top;
+  box-sizing: border-box;
+  cursor: text;
+
+  &:focus {
+    background-color: rgba(0, 0, 0, 0.05);
+    outline: none;
+  }
+
+  &:hover:not(:focus) {
+    background-color: rgba(0, 0, 0, 0.1);
+  }
+
+  // Smooth scrollbar
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 3px;
+
+    &:hover {
+      background: rgba(0, 0, 0, 0.3);
+    }
+  }
+
+  // Placeholder styling
+  &::placeholder {
+    color: #999;
+    opacity: 0.4;
+  }
+}
+
+
+
+.script-item__delete {
+  @include hidden-on-idle;
+  position: absolute;
+  right: 0.5em;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 30px;
+  height: 30px;
+  background-color: transparent;
+  color: $color-danger;
+  border-radius: $border-radius-md;
+  cursor: pointer;
+  font-size: $font-size-sm;
+  border: none;
+
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+  }
+}
+
+
+.script-item__slugline-numbers {
+  font-size: $font-size-sm;
+
+  .--left,
+  .--right {
+    display: block;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #666;
+  }
+
+  .--left {
+    left: 3em;
+  }
+
+  .--right {
+    right: 3em;
+  }
+}

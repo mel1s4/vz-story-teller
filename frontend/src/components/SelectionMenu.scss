@@ -1,0 +1,61 @@
+@use '../styles/mixins' as *;
+
+.selection-menu {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: $z-index-menu;
+  background: $color-white;
+  border-bottom: 2px solid $color-primary;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  animation: slideDown 0.3s ease-out;
+  transform: translateY(0);
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.selection-menu__content {
+  @include flex-between;
+  padding: $spacing-md $spacing-xl;
+  max-width: 100%;
+}
+
+.selection-menu__count {
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+  font-weight: $font-weight-semibold;
+  color: $color-primary;
+  font-size: $font-size-sm;
+}
+
+.selection-menu__actions {
+  display: flex;
+  gap: $spacing-sm;
+
+  button {
+    @include button;
+    @include hover-lift;
+    font-size: $font-size-xs;
+    padding: 0.5em 1em;
+
+    &.danger {
+      background: $color-danger;
+
+      &:hover {
+        background: $color-danger-dark;
+      }
+    }
+  }
+}

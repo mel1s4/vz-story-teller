@@ -1,0 +1,136 @@
+<svg width="900" height="800" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .side-label {
+        font-family: Arial, sans-serif;
+        font-size: 3px;
+        fill: #333;
+        font-weight: bold;
+      }
+      .angle-label {
+        font-family: Arial, sans-serif;
+        font-size: 2.5px;
+        fill: #0066cc;
+        font-weight: bold;
+      }
+      .diagonal-label {
+        font-family: Arial, sans-serif;
+        font-size: 2.5px;
+        fill: #cc6600;
+        font-weight: bold;
+      }
+      .line {
+        stroke: #333;
+        stroke-width: 0.4;
+        fill: none;
+      }
+      .diagonal {
+        stroke: #cc6600;
+        stroke-width: 0.4;
+        stroke-dasharray: 1,1;
+        fill: none;
+      }
+      .angle-arc {
+        stroke: #0066cc;
+        stroke-width: 0.3;
+        fill: none;
+      }
+      .vertex {
+        fill: #333;
+      }
+    </style>
+  </defs>
+
+  <!-- Construcción del cuadrilátero usando teoría de triángulos -->
+
+  <!-- Vértice A en el origen (10, 10) -->
+  <circle cx="10" cy="10" r="0.6" class="vertex"/>
+  <text x="10" y="8.8" text-anchor="middle" class="side-label">A</text>
+
+  <!-- Vértice B: desde A, lado AB = 29.5 unidades hacia la derecha -->
+  <circle cx="39.5" cy="10" r="0.6" class="vertex"/>
+  <text x="39.5" y="8.8" text-anchor="middle" class="side-label">B</text>
+
+  <!-- TRIÁNGULO 1: ABC
+       Lados: AB=29.5, BC=78.5, AC=80.5 (diagonal)
+       Ángulo en B = 83.15° (calculado con ley de cosenos)
+
+       Para encontrar C desde B:
+       - BC = 78.5 forma un ángulo de 83.15° con AB
+       - Como AB es horizontal, BC tiene dirección:
+         BC_x = 78.5 * cos(83.15°) = 78.5 * 0.1192 = 9.36
+         BC_y = 78.5 * sin(83.15°) = 78.5 * 0.9929 = 77.94
+       - C = B + BC = (39.5 + 9.36, 10 + 77.94) = (48.86, 87.94)
+  -->
+  <circle cx="48.86" cy="87.94" r="0.6" class="vertex"/>
+  <text x="48.86" y="89.2" text-anchor="middle" class="side-label">C</text>
+
+  <!-- TRIÁNGULO 2: ADC
+       Lados: AD=79.5, DC=5.7, AC=80.5 (diagonal)
+       Ángulo en D = 98.09° (calculado con ley de cosenos)
+
+       Para encontrar D desde A:
+       - Primero necesito saber el ángulo que forma AD con la horizontal
+       - Usando la ley de los cosenos en el triángulo ADC:
+         AC² = AD² + DC² - 2(AD)(DC)cos(∠ADC)
+         80.5² = 79.5² + 5.7² - 2(79.5)(5.7)cos(98.09°)
+         cos(98.09°) = -0.1407
+
+       - Necesito calcular el ángulo en A del triángulo ADC
+       - Usando la ley de los cosenos:
+         DC² = AD² + AC² - 2(AD)(AC)cos(∠DAC)
+         5.7² = 79.5² + 80.5² - 2(79.5)(80.5)cos(∠DAC)
+         32.49 = 6320.25 + 6480.25 - 12799.5cos(∠DAC)
+         cos(∠DAC) = (12800.5 - 32.49) / 12799.5 = 0.9974
+         ∠DAC = arccos(0.9974) = 4.13°
+
+       - AD forma un ángulo de 4.13° con AC
+       - AC va de A a C: dirección (38.86, 77.94)
+       - Ángulo de AC con horizontal: arctan(77.94/38.86) = 63.47°
+       - Ángulo de AD con horizontal: 63.47° - 4.13° = 59.34°
+
+       - AD_x = 79.5 * cos(59.34°) = 79.5 * 0.5100 = 40.55
+       - AD_y = 79.5 * sin(59.34°) = 79.5 * 0.8601 = 68.38
+       - D = A + AD = (10 + 40.55, 10 + 68.38) = (50.55, 78.38)
+  -->
+  <circle cx="50.55" cy="78.38" r="0.6" class="vertex"/>
+  <text x="50.55" y="79.6" text-anchor="middle" class="side-label">D</text>
+
+  <!-- Lados del cuadrilátero -->
+  <!-- Lado AB: 29.5 -->
+  <line x1="10" y1="10" x2="39.5" y2="10" class="line"/>
+  <text x="24.75" y="9.2" text-anchor="middle" class="side-label">29.5</text>
+
+  <!-- Lado BC: 78.5 -->
+  <line x1="39.5" y1="10" x2="48.86" y2="87.94" class="line"/>
+  <text x="44.18" y="48.97" text-anchor="middle" class="side-label">78.5</text>
+
+  <!-- Lado CD: 5.7 -->
+  <line x1="48.86" y1="87.94" x2="50.55" y2="78.38" class="line"/>
+  <text x="49.7" y="83.16" text-anchor="middle" class="side-label">5.7</text>
+
+  <!-- Lado DA: 79.5 -->
+  <line x1="50.55" y1="78.38" x2="10" y2="10" class="line"/>
+  <text x="30.28" y="44.19" text-anchor="middle" class="side-label">79.5</text>
+
+  <!-- Diagonal AC: 80.5 -->
+  <line x1="10" y1="10" x2="48.86" y2="87.94" class="diagonal"/>
+  <text x="29.43" y="48.97" text-anchor="middle" class="diagonal-label">80.5</text>
+
+  <!-- Ángulos -->
+  <!-- Ángulo en A: 83.15° -->
+  <path d="M 12 10 A 3 3 0 0 1 11.5 8" class="angle-arc"/>
+  <text x="13" y="9" class="angle-label">83.15°</text>
+
+  <!-- Ángulo en B: 96.85° -->
+  <path d="M 38 10 A 3 3 0 0 1 38.5 12" class="angle-arc"/>
+  <text x="41" y="12" class="angle-label">96.85°</text>
+
+  <!-- Ángulo en C: 98.09° -->
+  <path d="M 48 88 A 3 3 0 0 1 48.5 86" class="angle-arc"/>
+  <text x="52" y="87" class="angle-label">98.09°</text>
+
+  <!-- Ángulo en D: 81.91° -->
+  <path d="M 50 77 A 3 3 0 0 1 50.5 79" class="angle-arc"/>
+  <text x="54" y="79" class="angle-label">81.91°</text>
+</svg>

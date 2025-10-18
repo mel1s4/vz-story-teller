@@ -1,0 +1,120 @@
+<svg width="600" height="500" xmlns="http://www.w3.org/2000/svg">
+  <!-- Definiciones de estilos -->
+  <defs>
+    <style>
+      .side-label {
+        font-family: Arial, sans-serif;
+        font-size: 12px;
+        fill: #333;
+        font-weight: bold;
+      }
+      .angle-label {
+        font-family: Arial, sans-serif;
+        font-size: 11px;
+        fill: #0066cc;
+        font-weight: bold;
+      }
+      .diagonal-label {
+        font-family: Arial, sans-serif;
+        font-size: 11px;
+        fill: #cc6600;
+        font-weight: bold;
+      }
+      .line {
+        stroke: #333;
+        stroke-width: 2;
+        fill: none;
+      }
+      .diagonal {
+        stroke: #cc6600;
+        stroke-width: 2;
+        stroke-dasharray: 5,5;
+        fill: none;
+      }
+      .angle-arc {
+        stroke: #0066cc;
+        stroke-width: 1.5;
+        fill: none;
+      }
+    </style>
+  </defs>
+
+  <!-- Título -->
+  <text x="300" y="30" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="bold">
+    Cuadrilátero con Medidas
+  </text>
+
+  <!-- Coordenadas de los vértices del cuadrilátero -->
+  <!-- Vertice A (arriba-izquierda) -->
+  <circle cx="100" cy="100" r="4" fill="#333"/>
+  <text x="95" y="95" text-anchor="middle" class="side-label">A</text>
+
+  <!-- Vertice B (arriba-derecha) -->
+  <circle cx="400" cy="80" r="4" fill="#333"/>
+  <text x="405" y="75" text-anchor="middle" class="side-label">B</text>
+
+  <!-- Vertice C (abajo-derecha) -->
+  <circle cx="405" cy="400" r="4" fill="#333"/>
+  <text x="410" y="405" text-anchor="middle" class="side-label">C</text>
+
+  <!-- Vertice D (abajo-izquierda) -->
+  <circle cx="110" cy="420" r="4" fill="#333"/>
+  <text x="105" y="425" text-anchor="middle" class="side-label">D</text>
+
+  <!-- Lados del cuadrilátero -->
+  <!-- Lado AB: 29.5 -->
+  <line x1="100" y1="100" x2="400" y2="80" class="line"/>
+  <text x="250" y="85" text-anchor="middle" class="side-label">29.5</text>
+
+  <!-- Lado BC: 78.5 -->
+  <line x1="400" y1="80" x2="405" y2="400" class="line"/>
+  <text x="415" y="240" text-anchor="start" class="side-label">78.5</text>
+
+  <!-- Lado CD: 5.7 -->
+  <line x1="405" y1="400" x2="110" y2="420" class="line"/>
+  <text x="257" y="415" text-anchor="middle" class="side-label">5.7</text>
+
+  <!-- Lado DA: 79.5 -->
+  <line x1="110" y1="420" x2="100" y2="100" class="line"/>
+  <text x="85" y="260" text-anchor="middle" class="side-label">79.5</text>
+
+  <!-- Diagonal AC: 80.5 -->
+  <line x1="100" y1="100" x2="405" y2="400" class="diagonal"/>
+  <text x="252" y="245" text-anchor="middle" class="diagonal-label">80.5</text>
+
+  <!-- Ángulos -->
+  <!-- Ángulo en A: 83.15° -->
+  <path d="M 120 100 A 20 20 0 0 1 115 80" class="angle-arc"/>
+  <text x="130" y="85" class="angle-label">83.15°</text>
+
+  <!-- Ángulo en B: 96.85° -->
+  <path d="M 395 85 A 20 20 0 0 1 400 105" class="angle-arc"/>
+  <text x="415" y="105" class="angle-label">96.85°</text>
+
+  <!-- Ángulo en C: 98.09° -->
+  <path d="M 395 400 A 20 20 0 0 1 400 380" class="angle-arc"/>
+  <text x="420" y="385" class="angle-label">98.09°</text>
+
+  <!-- Ángulo en D: 81.91° -->
+  <path d="M 110 405 A 20 20 0 0 1 115 425" class="angle-arc"/>
+  <text x="125" y="425" class="angle-label">81.91°</text>
+
+  <!-- Leyenda -->
+  <g transform="translate(450, 100)">
+    <text x="0" y="0" font-family="Arial, sans-serif" font-size="14" font-weight="bold">Leyenda:</text>
+    <line x1="0" y1="15" x2="30" y2="15" class="line"/>
+    <text x="35" y="20" font-family="Arial, sans-serif" font-size="11">Lados</text>
+    <line x1="0" y1="35" x2="30" y2="35" class="diagonal"/>
+    <text x="35" y="40" font-family="Arial, sans-serif" font-size="11">Diagonal</text>
+    <path d="M 0 55 A 15 15 0 0 1 10 50" class="angle-arc"/>
+    <text x="15" y="60" font-family="Arial, sans-serif" font-size="11">Ángulos</text>
+  </g>
+
+  <!-- Información adicional -->
+  <g transform="translate(50, 450)">
+    <text x="0" y="0" font-family="Arial, sans-serif" font-size="11" fill="#666">
+      Nota: Las medidas están en las mismas unidades (no especificadas)
+    </text>
+  </g>
+</svg>
+
