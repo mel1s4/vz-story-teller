@@ -55,7 +55,7 @@ function vz_story_teller_register_post_type() {
         'label'                 => __('Script', 'vz-story-teller'),
         'description'           => __('Interactive story scripts', 'vz-story-teller'),
         'labels'                => $labels,
-        'supports'              => array('title', 'editor', 'thumbnail', 'custom-fields', 'revisions'),
+        'supports'              => array('title', 'thumbnail', 'revisions'),
         'taxonomies'            => array('category', 'post_tag'),
         'hierarchical'          => false,
         'public'                => true,
@@ -77,63 +77,52 @@ function vz_story_teller_register_post_type() {
 }
 add_action('init', 'vz_story_teller_register_post_type', 0);
 
-/**
- * Add custom meta box for Script Editor
- */
-function vz_story_teller_add_meta_boxes() {
-    add_meta_box(
-        'vz_script_editor',
-        __('Script Content', 'vz-story-teller'),
-        'vz_story_teller_script_editor_callback',
-        'vz_script',
-        'normal',
-        'high'
+
+function vz_story_teller_edit_script_page() {
+  if ($_GET['action'] === 'edit' && $_GET['vz_front'] === 'true') {
+    $post_id = $_GET['post'];
+    $post = get_post($post_id);
+    $post_type = $post->post_type;
+    if ($post_type !== 'vz_script') {
+      return;
+    }
+    include 'script-editor.php';
+    die();
+  }
+}
+
+add_action('admin_init', 'vz_story_teller_edit_script_page');
+
+
+// Add a new endpoint for the API
+function vz_story_teller_add_api_endpoint() {
+  register_rest_route('vz-story-teller/v1', '/script', array(
+    'methods' => 'POST',
+    'callback' => 'vz_story_teller_save_script',
+    'permission_callback' => 'vz_story_teller_check_permissions',
+  ));
+}
+add_action('rest_api_init', 'vz_story_teller_add_api_endpoint');
+
+// Check if user has permission to edit the script
+function vz_story_teller_check_permissions($request) {
+  $post_id = $request->get_param('post_id');
+
+  // Check if user is logged in and can edit the post
+  if (!current_user_can('edit_post', $post_id)) {
+    return new WP_Error(
+      'rest_forbidden',
+      __('You do not have permission to edit this script.', 'vz-story-teller'),
+      array('status' => 403)
     );
-}
-add_action('add_meta_boxes', 'vz_story_teller_add_meta_boxes');
+  }
 
-/**
- * Callback function for Script Editor meta box
- */
-function vz_story_teller_script_editor_callback($post) {
-    // Add nonce for security
-    wp_nonce_field('vz_story_teller_script_editor_nonce', 'vz_story_teller_script_editor_nonce');
-    // import the script editor
-    wp_enqueue_script('vz-story-teller-script-editor', plugin_dir_url(__FILE__) . 'frontend/dist/index.js', array(), '1.0.0', true);
-    ?>
-    <div class="vz-script-editor-wrapper" id="vz-script-editor">
-    </div>
-    <?php
+  return true;
 }
 
-/**
- * Save Script Editor meta box data
- */
-function vz_story_teller_save_script_editor($post_id) {
-    // Check if nonce is valid
-    if (!isset($_POST['vz_story_teller_script_editor_nonce']) ||
-        !wp_verify_nonce($_POST['vz_story_teller_script_editor_nonce'], 'vz_story_teller_script_editor_nonce')) {
-        return;
-    }
-
-    // Check if user has permission to edit the post
-    if (!current_user_can('edit_post', $post_id)) {
-        return;
-    }
-
-    // Check if not an autosave
-    if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
-        return;
-    }
-
-    // Check if not a revision
-    if (wp_is_post_revision($post_id)) {
-        return;
-    }
-
-    // Save the meta field
-    if (isset($_POST['vz_script_content'])) {
-        update_post_meta($post_id, '_vz_script_content', sanitize_textarea_field($_POST['vz_script_content']));
-    }
+function vz_story_teller_save_script($request) {
+  $script = $request->get_param('script');
+  $post_id = $request->get_param('post_id');
+  update_post_meta($post_id, 'vz_script', $script);
+  return new WP_REST_Response(array('message' => 'Script saved'), 200);
 }
-add_action('save_post', 'vz_story_teller_save_script_editor');

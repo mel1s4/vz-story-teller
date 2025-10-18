@@ -1,5 +1,6 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { useKeyboardShortcuts } from '../helpers/useKeyboardShortcuts';
+import api from '../helpers/api';
 
 const ScriptContext = createContext();
 
@@ -13,6 +14,7 @@ export const useScript = () => {
 
 export const ScriptProvider = ({ children }) => {
   const [script, setScript] = useState([]);
+  const [initialScript, setInitialScript] = useState([]);
   const [selectedItems, setSelectedItems] = useState([]);
   const [currentlyEditing, setCurrentlyEditingId] = useState(null);
 
@@ -91,7 +93,7 @@ export const ScriptProvider = ({ children }) => {
 
   // Load script from localStorage on mount and initialize history
   useEffect(() => {
-    const savedScript = window.localStorage.getItem('script');
+    const savedScript = api.getScript();
     let initialScript = [];
     if (savedScript) {
       try {
@@ -102,6 +104,7 @@ export const ScriptProvider = ({ children }) => {
       }
     }
     setScript(initialScript);
+    setInitialScript(initialScript);
     setInitialState(JSON.parse(JSON.stringify(initialScript)));
     // Initialize history with the loaded script as the initial state
     setHistory({
@@ -112,10 +115,10 @@ export const ScriptProvider = ({ children }) => {
     setHistoryIndex(0);
   }, []);
 
-  // Save script to localStorage whenever it changes
   useEffect(() => {
-    if (script.length > 0) {
-      window.localStorage.setItem('script', JSON.stringify(script));
+    if (JSON.stringify(script) !== JSON.stringify(initialScript)) {
+      console.log('script has changed, saving to API');
+      api.saveScript(script);
     }
   }, [script]);
 
