@@ -12,6 +12,8 @@ const ItemTypeSelector = ({ types, type, setType }) => {
     'parenthetical': 'italic',
     'character': 'user',
     'dialog': 'comment',
+    'transition': 'arrow-right',
+    'pagebreak': 'file-lines',
   }
 
   return (

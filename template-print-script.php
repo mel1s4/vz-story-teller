@@ -97,6 +97,12 @@ function get_scene_number($id, $scene_numbers) {
     margin-top: 2em;
   }
 
+  .--transition {
+    text-transform: uppercase;
+    text-align: right;
+    padding-right: 2em;
+  }
+
   .--slugline {
     font-weight: bold;
     text-transform: uppercase;
@@ -111,10 +117,29 @@ function get_scene_number($id, $scene_numbers) {
     padding: 0 3em;
   }
 
+  .--parenthetical {
+    font-style: italic;
+    text-align: center;
+    max-width: 18em;
+  }
+
   .--character {
     text-transform: uppercase;
     text-align: center;
     max-width: 18em;
+  }
+
+  .--pagebreak {
+    page-break-after: always;
+    break-after: page;
+    display: none;
+  }
+
+  @media print {
+    .--pagebreak {
+      page-break-after: always;
+      break-after: page;
+    }
   }
 </style>
 <body>
@@ -137,7 +162,9 @@ function get_scene_number($id, $scene_numbers) {
                 <?php if ($type === 'slugline' && $scene_number): ?>
                   <span class="scene-number --left"><?php echo esc_html($scene_number); ?></span>
                 <?php endif; ?>
-                <?php echo nl2br(esc_html($value)); ?>
+                <?php if ($type !== 'pagebreak'): ?>
+                  <?php echo nl2br(esc_html($value)); ?>
+                <?php endif; ?>
                 <?php if ($type === 'slugline' && $scene_number): ?>
                   <span class="scene-number --right"><?php echo esc_html($scene_number); ?></span>
                 <?php endif; ?>

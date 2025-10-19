@@ -7,26 +7,39 @@
   transition: opacity 0.2s ease-in-out;
   flex-shrink: 0;
   z-index: 3;
-  pointer-events: none;
   position: absolute;
   left: 2.8em;
   top: 0;
+  pointer-events: none;
 }
 
+.script-item__content-wrapper:hover .script-item__select,
 .script-item__input:focus+.script-item__select,
+.script-item__input:hover+.script-item__select,
 .script-item__select:hover {
   opacity: 1;
   pointer-events: auto;
+
+  &~.type-list {
+    opacity: 1;
+    pointer-events: auto;
+    z-index: 5;
+  }
 }
 
 .current-type {
-  z-index: 3;
   padding: $spacing-xs;
   cursor: pointer;
   border-radius: $border-radius-sm;
 
   &:hover {
     z-index: 5;
+
+    &~.type-list {
+      opacity: 1;
+      pointer-events: auto;
+      z-index: 5;
+    }
   }
 }
 
@@ -43,7 +56,7 @@
 
 .type-list {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 0.5em;
   list-style: none;
   padding: 0;

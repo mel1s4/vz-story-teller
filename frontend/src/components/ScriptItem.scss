@@ -122,6 +122,16 @@
   }
 }
 
+// Transition
+.script-item.--transition {
+  .script-item__value {
+    text-transform: uppercase;
+    font-size: $font-size-base;
+    text-align: right;
+    padding-right: 2em;
+  }
+}
+
 // Slugline
 .script-item.--slugline {
   .script-item__value {
@@ -174,6 +184,26 @@
     font-size: $font-size-base;
     max-width: 18rem;
     margin: 0 auto;
+  }
+}
+
+// Page Break
+.script-item.--pagebreak {
+  .script-item__pagebreak-indicator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5em;
+    padding: 1em 2em;
+    margin: 1em auto;
+    background-color: rgba($color-primary, 0.1);
+    border: 2px dashed rgba($color-primary, 0.3);
+    border-radius: $border-radius-md;
+    color: $color-primary;
+    font-weight: 500;
+    font-size: $font-size-base;
+    width: fit-content;
+    min-width: 200px;
   }
 }
 

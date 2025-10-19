@@ -252,15 +252,17 @@ export const ScriptProvider = ({ children }) => {
   };
 
   // Item types in order
-  const itemTypes = ['header', 'subtitle', 'slugline', 'action', 'character', 'parenthetical', 'dialog'];
+  const itemTypes = ['header', 'subtitle', 'transition', 'slugline', 'action', 'character', 'parenthetical', 'dialog', 'pagebreak'];
   const itemTypesIcons = {
     'header': 'heading-1',
     'subtitle': 'heading-2',
+    'transition': 'arrow-right',
     'slugline': 'castle',
     'action': 'scan-text',
     'character': 'user',
     'parenthetical': 'comment-dots',
     'dialog': 'message-circle-more',
+    'pagebreak': 'file-lines',
   };
   // Keyboard shortcuts - only active when editing
   const shortcuts = {

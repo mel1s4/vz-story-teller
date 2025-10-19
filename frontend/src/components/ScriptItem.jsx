@@ -65,11 +65,13 @@ const ScriptItem = (
   const types = [
     'header', // Episode/scene title
     'subtitle', // Episode/scene subtitle
+    'transition', // Scene transition
     'slugline', // Scene header
     'action', // Scene description and action lines
     'character', // Character name
     'parenthetical', // Actor direction
     'dialog', // Character dialogue
+    'pagebreak', // Page break
   ];
 
   // Get placeholder text based on item type
@@ -79,6 +81,8 @@ const ScriptItem = (
         return 'EPISODE TITLE';
       case 'subtitle':
         return 'Episode subtitle or description';
+      case 'transition':
+        return 'FADE OUT';
       case 'slugline':
         return 'INT. WELL LIT HOUSE. - DAY';
       case 'action':
@@ -119,21 +123,27 @@ const ScriptItem = (
         </button>
       </div>
       <section className="script-item__content-wrapper">
-        <textarea
-          ref={textareaRef}
-          value={localValue}
-          data-id={id}
-          onChange={(e) => {
-            setLocalValue(e.target.value);
-            resizeTextarea(id);
-          }}
-          onBlur={handleBlur}
-          onFocus={() => setCurrentlyEditingId(id)}
-          className="script-item__input script-item__value"
-          placeholder={getPlaceholder(type)}
-          spellCheck={false}
-          rows={1}
-        />
+        {type === 'pagebreak' ? (
+          <div className="script-item__pagebreak-indicator">
+            <Icon name="file-lines" size="lg" />
+          </div>
+        ) : (
+          <textarea
+            ref={textareaRef}
+            value={localValue}
+            data-id={id}
+            onChange={(e) => {
+              setLocalValue(e.target.value);
+              resizeTextarea(id);
+            }}
+            onBlur={handleBlur}
+            onFocus={() => setCurrentlyEditingId(id)}
+            className="script-item__input script-item__value"
+            placeholder={getPlaceholder(type)}
+            spellCheck={false}
+            rows={1}
+          />
+        )}
         <ItemTypeSelector types={types} type={type} setType={setType} />
         {type === 'slugline' && sceneNumber && (
           <div className="script-item__slugline-numbers">
