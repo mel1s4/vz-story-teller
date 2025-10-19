@@ -13,27 +13,25 @@
 }
 
 .script__add-button {
-  display: flex;
-  align-items: center;
-  gap: 0.5em;
-  padding: 0.75em 1em;
+  width: 42px;
+  height: 42px;
   margin: 1em auto;
-  background-color: $color-primary;
-  color: white;
+  background-color: transparent;
+  color: $color-primary;
   border: none;
-  border-radius: $border-radius-md;
+  border-radius: 50%;
   font-size: $font-size-base;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease-in-out;
-  width: fit-content;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   position: fixed;
   bottom: 1em;
   right: 1em;
+  border: 1px solid $color-primary;
 
   &:hover {
-    background-color: $color-primary-dark;
+    background-color: #eaeaea;
     transform: translateY(-1px);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
   }

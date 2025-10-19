@@ -10,7 +10,7 @@
   justify-content: center;
 
   .drag-handle {
-    @include absolute($top: calc(50% + 2px), $left: 0);
+    @include absolute($top: 1em, $left: 0);
     @include hidden-on-idle;
     transform: translateY(-50%);
     cursor: grab;
@@ -41,6 +41,14 @@
     .script-item__delete {
       opacity: 1;
     }
+
+    .script-item__select {
+      opacity: 1;
+    }
+
+    .script-item__slugline-numbers .--left {
+      opacity: 0;
+    }
   }
 
   &.selected {
@@ -60,8 +68,7 @@
   .script-item__label {
     // multiple selection checkbox
     cursor: pointer;
-    @include absolute($top: 50%, $left: 1em);
-    transform: translateY(-50%);
+    @include absolute($top: 2px, $left: 1em);
 
     input {
       @include hidden-on-idle;
@@ -82,12 +89,6 @@
     font-family: monospace;
     transition: all 0.2s ease-in-out;
     padding: 0.3em 0.8em;
-
-    &:focus {
-      // outline: none;
-      //border: none;
-      box-shadow: none;
-    }
   }
 }
 
@@ -194,6 +195,10 @@
   &:focus {
     background-color: rgba(0, 0, 0, 0.05);
     outline: none;
+
+    &~.script-item__slugline-numbers .--left {
+      opacity: 0;
+    }
   }
 
   &:hover:not(:focus) {
@@ -231,8 +236,7 @@
   @include hidden-on-idle;
   position: absolute;
   right: 0.5em;
-  top: 50%;
-  transform: translateY(-50%);
+  top: 0;
   width: 30px;
   height: 30px;
   background-color: transparent;
@@ -255,13 +259,12 @@
   .--right {
     display: block;
     position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
+    top: 0.5em;
     color: #666;
   }
 
   .--left {
-    left: 3em;
+    left: 3.5em;
   }
 
   .--right {

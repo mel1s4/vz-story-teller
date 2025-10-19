@@ -27,6 +27,7 @@ const ScriptItem = (
     toggleSelection,
     isSelected,
     getSceneNumber,
+    resizeTextarea,
   } = useScript();
 
   const isEditing = currentlyEditing === id;
@@ -113,12 +114,6 @@ const ScriptItem = (
           onClick={deleteItem}>
           <Icon name="circle-xmark" size="sm" className="script-item__icon" />
         </button>
-        {type === 'slugline' && sceneNumber && (
-          <div className="script-item__slugline-numbers">
-            <span className="script-item__scene-number --left">{sceneNumber}</span>
-            <span className="script-item__scene-number --right">{sceneNumber}</span>
-          </div>
-        )}
       </div>
       <section className="script-item__content-wrapper">
         <textarea
@@ -127,32 +122,22 @@ const ScriptItem = (
           data-id={id}
           onChange={(e) => {
             setLocalValue(e.target.value);
-            // Auto-resize textarea
-            e.target.style.height = 'auto';
-            e.target.style.height = `${e.target.scrollHeight}px`;
+            resizeTextarea(id);
           }}
           onBlur={handleBlur}
           onFocus={() => setCurrentlyEditingId(id)}
-          onKeyDown={(e) => {
-            // Allow Tab key for indentation
-            if (e.key === 'Tab') {
-              e.preventDefault();
-              const start = e.target.selectionStart;
-              const end = e.target.selectionEnd;
-              const newValue = localValue.substring(0, start) + '  ' + localValue.substring(end);
-              setLocalValue(newValue);
-              // Set cursor position after tab
-              setTimeout(() => {
-                e.target.selectionStart = e.target.selectionEnd = start + 2;
-              }, 0);
-            }
-          }}
           className="script-item__input script-item__value"
           placeholder={getPlaceholder(type)}
           spellCheck={false}
           rows={1}
         />
         <ItemTypeSelector types={types} type={type} setType={setType} />
+        {type === 'slugline' && sceneNumber && (
+          <div className="script-item__slugline-numbers">
+            <span className="script-item__scene-number --left">{sceneNumber}</span>
+            <span className="script-item__scene-number --right">{sceneNumber}</span>
+          </div>
+        )}
       </section>
     </div>
 

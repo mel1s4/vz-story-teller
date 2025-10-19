@@ -63,7 +63,6 @@ const Script = () => {
           onClick={() => addScriptItem('action')}
           title="Add Item">
           <Icon name="plus" size="lg" />
-          <span>Add Item</span>
         </button>
       </div>
     </>

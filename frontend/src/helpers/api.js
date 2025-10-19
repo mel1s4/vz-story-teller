@@ -14,7 +14,6 @@ function getPostId() {
 }
 
 function getScript() {
-  console.log('vz_script', window.vz_script);
   return window.vz_script;
 }
 
@@ -23,12 +22,11 @@ function getApiUrl() {
 }
 
 async function saveScript(script) {
-  const response = await fetch(`${getApiUrl()}script`, {
+  const response = await fetch(`${getApiUrl()}script/${getPostId()}`, {
     method: 'POST',
     headers: getHeaders(),
     body: JSON.stringify({
       script: script,
-      post_id: getPostId(),
     }),
   });
   return response.json();

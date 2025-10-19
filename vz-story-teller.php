@@ -55,7 +55,7 @@ function vz_story_teller_register_post_type() {
         'label'                 => __('Script', 'vz-story-teller'),
         'description'           => __('Interactive story scripts', 'vz-story-teller'),
         'labels'                => $labels,
-        'supports'              => array('title', 'thumbnail', 'revisions'),
+        'supports'              => array('title', 'thumbnail', 'revisions', 'page-attributes'),
         'taxonomies'            => array('category', 'post_tag'),
         'hierarchical'          => false,
         'public'                => true,
@@ -64,13 +64,15 @@ function vz_story_teller_register_post_type() {
         'menu_position'         => 20,
         'menu_icon'             => 'dashicons-media-document',
         'show_in_admin_bar'     => true,
-        'show_in_nav_menus'     => true,
+        'show_in_nav_menus'     => false,
         'can_export'            => true,
-        'has_archive'           => true,
-        'exclude_from_search'   => false,
+        'has_archive'           => false,
+        'exclude_from_search'   => true,
         'publicly_queryable'    => true,
         'capability_type'       => 'post',
-        'show_in_rest'          => true,
+        'show_in_rest'          => false, // SECURITY: Disable REST API access
+        'rest_base'             => null,
+        'rest_controller_class' => null,
     );
 
     register_post_type('vz_script', $args);
@@ -79,13 +81,41 @@ add_action('init', 'vz_story_teller_register_post_type', 0);
 
 
 function vz_story_teller_edit_script_page() {
-  if ($_GET['action'] === 'edit' && $_GET['vz_front'] === 'true') {
-    $post_id = $_GET['post'];
-    $post = get_post($post_id);
-    $post_type = $post->post_type;
-    if ($post_type !== 'vz_script') {
-      return;
+  // Only run security checks if vz_front parameter is present
+  if (!isset($_GET['vz_front']) || $_GET['vz_front'] !== 'true') {
+    return;
+  }
+
+  // SECURITY: Verify nonce to prevent CSRF attacks
+  if (!isset($_GET['_wpnonce']) || !wp_verify_nonce($_GET['_wpnonce'], 'vz_edit_script_' . $_GET['post'])) {
+    wp_die(__('Security check failed. Please try again.', 'vz-story-teller'), __('Security Error', 'vz-story-teller'), array('response' => 403));
+  }
+
+  // SECURITY: Check if user is logged in
+  if (!is_user_logged_in()) {
+    wp_die(__('You must be logged in to access this page.', 'vz-story-teller'), __('Authentication Required', 'vz-story-teller'), array('response' => 401));
+  }
+
+  if ($_GET['action'] === 'edit') {
+    $post_id = absint($_GET['post']);
+
+    // SECURITY: Verify post exists
+    if (!$post_id) {
+      wp_die(__('Invalid post ID.', 'vz-story-teller'), __('Invalid Request', 'vz-story-teller'), array('response' => 400));
     }
+
+    $post = get_post($post_id);
+
+    // SECURITY: Verify post exists and is vz_script type
+    if (!$post || $post->post_type !== 'vz_script') {
+      wp_die(__('Script not found.', 'vz-story-teller'), __('Not Found', 'vz-story-teller'), array('response' => 404));
+    }
+
+    // SECURITY: Check if user can edit this specific post
+    if (!current_user_can('edit_post', $post_id)) {
+      wp_die(__('You do not have permission to edit this script.', 'vz-story-teller'), __('Permission Denied', 'vz-story-teller'), array('response' => 403));
+    }
+
     include 'script-editor.php';
     die();
   }
@@ -94,25 +124,70 @@ function vz_story_teller_edit_script_page() {
 add_action('admin_init', 'vz_story_teller_edit_script_page');
 
 
-// Add a new endpoint for the API
-function vz_story_teller_add_api_endpoint() {
-  register_rest_route('vz-story-teller/v1', '/script', array(
+// Add REST API endpoints for the script editor
+function vz_story_teller_add_api_endpoints() {
+  // GET endpoint to retrieve script data
+  register_rest_route('vz-story-teller/v1', '/script/(?P<id>\d+)', array(
+    'methods' => 'GET',
+    'callback' => 'vz_story_teller_get_script',
+    'permission_callback' => 'vz_story_teller_check_permissions',
+    'args' => array(
+      'id' => array(
+        'required' => true,
+        'validate_callback' => function($param) {
+          return is_numeric($param);
+        },
+        'sanitize_callback' => 'absint',
+      ),
+    ),
+  ));
+
+  // POST endpoint to save script data
+  register_rest_route('vz-story-teller/v1', '/script/(?P<id>\d+)', array(
     'methods' => 'POST',
     'callback' => 'vz_story_teller_save_script',
     'permission_callback' => 'vz_story_teller_check_permissions',
+    'args' => array(
+      'id' => array(
+        'required' => true,
+        'validate_callback' => function($param) {
+          return is_numeric($param);
+        },
+        'sanitize_callback' => 'absint',
+      ),
+    ),
   ));
 }
-add_action('rest_api_init', 'vz_story_teller_add_api_endpoint');
+add_action('rest_api_init', 'vz_story_teller_add_api_endpoints');
 
-// Check if user has permission to edit the script
+// SECURITY: Check if user has permission to access the script
 function vz_story_teller_check_permissions($request) {
-  $post_id = $request->get_param('post_id');
+  // SECURITY: Check if user is logged in
+  if (!is_user_logged_in()) {
+    return new WP_Error(
+      'rest_unauthorized',
+      __('You must be logged in to access this resource.', 'vz-story-teller'),
+      array('status' => 401)
+    );
+  }
 
-  // Check if user is logged in and can edit the post
+  $post_id = $request->get_param('id');
+
+  // SECURITY: Verify post exists and is vz_script type
+  $post = get_post($post_id);
+  if (!$post || $post->post_type !== 'vz_script') {
+    return new WP_Error(
+      'rest_not_found',
+      __('Script not found.', 'vz-story-teller'),
+      array('status' => 404)
+    );
+  }
+
+  // SECURITY: Check if user can edit this specific post
   if (!current_user_can('edit_post', $post_id)) {
     return new WP_Error(
       'rest_forbidden',
-      __('You do not have permission to edit this script.', 'vz-story-teller'),
+      __('You do not have permission to access this script.', 'vz-story-teller'),
       array('status' => 403)
     );
   }
@@ -120,9 +195,174 @@ function vz_story_teller_check_permissions($request) {
   return true;
 }
 
-function vz_story_teller_save_script($request) {
-  $script = $request->get_param('script');
-  $post_id = $request->get_param('post_id');
-  update_post_meta($post_id, 'vz_script', $script);
-  return new WP_REST_Response(array('message' => 'Script saved'), 200);
+// SECURITY: Get script data securely
+function vz_story_teller_get_script($request) {
+  $post_id = $request->get_param('id');
+  $script = get_post_meta($post_id, 'vz_script', true);
+
+  if (!$script) {
+    $script = array();
+  }
+
+  return new WP_REST_Response(array(
+    'post_id' => $post_id,
+    'script' => $script,
+  ), 200);
 }
+
+// SECURITY: Save script data securely
+function vz_story_teller_save_script($request) {
+  $post_id = $request->get_param('id');
+  $script = $request->get_param('script');
+
+  // SECURITY: Validate that script is an array
+  if (!is_array($script)) {
+    return new WP_Error(
+      'rest_invalid_data',
+      __('Invalid script data.', 'vz-story-teller'),
+      array('status' => 400)
+    );
+  }
+
+  // SECURITY: Sanitize and save script data
+  update_post_meta($post_id, 'vz_script', $script);
+
+  return new WP_REST_Response(array(
+    'message' => 'Script saved successfully',
+    'post_id' => $post_id,
+  ), 200);
+}
+
+/**
+ * Add "Edit in Frontend" button to vz_script post edit page
+ */
+function vz_story_teller_add_frontend_edit_button() {
+    global $post;
+
+    // Only show for vz_script post type
+    if (!$post || $post->post_type !== 'vz_script') {
+        return;
+    }
+
+    // SECURITY: Generate nonce for the frontend edit link
+    $nonce = wp_create_nonce('vz_edit_script_' . $post->ID);
+
+    // Get the current URL with nonce for security
+    $current_url = admin_url('post.php?post=' . $post->ID . '&action=edit&vz_front=true&_wpnonce=' . $nonce);
+
+    ?>
+    <div class="misc-pub-section">
+        <a href="<?php echo esc_url($current_url); ?>" class="button button-primary button-large" style="width: 100%; text-align: center; margin-top: 10px;">
+            <?php _e('Edit in Frontend', 'vz-story-teller'); ?>
+        </a>
+    </div>
+    <?php
+}
+add_action('post_submitbox_misc_actions', 'vz_story_teller_add_frontend_edit_button');
+
+
+/**
+ * Template meta box callback
+ */
+function vz_story_teller_template_meta_box_callback($post) {
+    wp_nonce_field('vz_story_teller_template_meta_box', 'vz_story_teller_template_meta_box_nonce');
+
+    $current_template = get_post_meta($post->ID, '_wp_page_template', true);
+    $templates = array(
+        'default' => 'Default',
+        'template-print-script.php' => 'Print-Friendly Script'
+    );
+
+    ?>
+    <div class="vz-template-selector">
+        <label for="page_template">
+            <?php _e('Select Template:', 'vz-story-teller'); ?>
+        </label>
+        <select name="page_template" id="page_template" class="widefat">
+            <?php foreach ($templates as $template => $label): ?>
+                <option value="<?php echo esc_attr($template); ?>" <?php selected($current_template, $template); ?>>
+                    <?php echo esc_html($label); ?>
+                </option>
+            <?php endforeach; ?>
+        </select>
+        <p class="description">
+            <?php _e('Choose how to display this script. Use "Print-Friendly Script" for the best printing experience.', 'vz-story-teller'); ?>
+        </p>
+        <?php if ($current_template === 'template-print-script.php'): ?>
+            <p>
+                <a href="<?php echo get_permalink($post->ID); ?>" target="_blank" class="button">
+                    <?php _e('View Print Version', 'vz-story-teller'); ?>
+                </a>
+            </p>
+        <?php endif; ?>
+    </div>
+    <?php
+}
+
+/**
+ * Save template meta box data
+ */
+function vz_story_teller_save_template_meta_box($post_id) {
+    // Check if nonce is set
+    if (!isset($_POST['vz_story_teller_template_meta_box_nonce'])) {
+        return;
+    }
+
+    // Verify nonce
+    if (!wp_verify_nonce($_POST['vz_story_teller_template_meta_box_nonce'], 'vz_story_teller_template_meta_box')) {
+        return;
+    }
+
+    // Check if autosave
+    if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
+        return;
+    }
+
+    // Check user permissions
+    if (!current_user_can('edit_post', $post_id)) {
+        return;
+    }
+
+    // Save template selection
+    if (isset($_POST['page_template'])) {
+        update_post_meta($post_id, '_wp_page_template', sanitize_text_field($_POST['page_template']));
+    }
+}
+add_action('save_post', 'vz_story_teller_save_template_meta_box');
+
+/**
+ * SECURITY: Remove vz_script from REST API even if show_in_rest is enabled elsewhere
+ */
+function vz_story_teller_remove_from_rest_api($post_type, $args) {
+    if ($post_type === 'vz_script') {
+        add_filter('rest_prepare_vz_script', '__return_false', 10, 3);
+    }
+}
+add_action('registered_post_type', 'vz_story_teller_remove_from_rest_api', 10, 2);
+
+/**
+ * SECURITY: Disable REST API for vz_script post type
+ */
+function vz_story_teller_disable_rest_api($result, $server, $request) {
+    $route = $request->get_route();
+
+    // Block any REST API access to vz_script posts
+    if (strpos($route, '/wp/v2/vz_script') !== false) {
+        return new WP_Error(
+            'rest_forbidden',
+            __('Access to this resource is not allowed.', 'vz-story-teller'),
+            array('status' => 403)
+        );
+    }
+
+    return $result;
+}
+add_filter('rest_pre_dispatch', 'vz_story_teller_disable_rest_api', 10, 3);
+
+
+// add filter to the view single page template to add the script editor
+function vz_story_teller_add_script_editor_to_single_page_template($template) {
+  include 'template-print-script.php';
+  die();
+}
+add_filter('wp_head', 'vz_story_teller_add_script_editor_to_single_page_template');

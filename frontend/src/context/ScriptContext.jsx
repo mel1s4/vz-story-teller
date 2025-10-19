@@ -30,9 +30,7 @@ export const ScriptProvider = ({ children }) => {
   function setCurrentlyEditing(id) {
     // set the item that has focus and is a textarea of an item in the script
     setCurrentlyEditingId(id);
-    console.log('id', id);
     const textarea = document.querySelector(`[data-id="${id}"]`);
-    console.log('textarea', textarea);
     if (textarea) {
       textarea.focus();
       // position pointer at the end of the textarea
@@ -97,7 +95,13 @@ export const ScriptProvider = ({ children }) => {
     let initialScript = [];
     if (savedScript) {
       try {
-        initialScript = JSON.parse(savedScript);
+        // Check if savedScript is already an object/array or a JSON string
+        if (typeof savedScript === 'string') {
+          initialScript = JSON.parse(savedScript);
+        } else {
+          // It's already a JavaScript object/array
+          initialScript = savedScript;
+        }
       } catch (error) {
         console.error('Error parsing saved script:', error);
         initialScript = [];
@@ -130,7 +134,9 @@ export const ScriptProvider = ({ children }) => {
       saveSnapshot(newScript);
       return newScript;
     });
-    setCurrentlyEditing(id);
+    setTimeout(() => {
+      setCurrentlyEditing(id);
+    }, 10);
   };
 
   // Insert a new item after a specific item
@@ -293,7 +299,37 @@ export const ScriptProvider = ({ children }) => {
         }
       }
     },
-    'Escape': () => {
+    'Tab': (e) => {
+      e.preventDefault();
+      if (currentlyEditing) {
+        // cycle through the next item type
+        const currentType = script.find(item => item.id === currentlyEditing).type;
+        const currentTypeIndex = itemTypes.findIndex(type => type === currentType);
+        const nextTypeIndex = (currentTypeIndex + 1) % itemTypes.length;
+        const nextType = itemTypes[nextTypeIndex];
+        if (nextType) {
+          updateScriptItem(currentlyEditing, { type: nextType });
+          setTimeout(() => {
+            resizeTextarea(currentlyEditing);
+          }, 10);
+        }
+      }
+    },
+    'Shift+Tab': (e) => {
+      e.preventDefault();
+      if (currentlyEditing) {
+        // cycle through the previous item type
+        const currentType = script.find(item => item.id === currentlyEditing).type;
+        const currentTypeIndex = itemTypes.findIndex(type => type === currentType);
+        const previousTypeIndex = (currentTypeIndex - 1 + itemTypes.length) % itemTypes.length;
+        const previousType = itemTypes[previousTypeIndex];
+        if (previousType) {
+          updateScriptItem(currentlyEditing, { type: previousType });
+          setTimeout(() => {
+            resizeTextarea(currentlyEditing);
+          }, 10);
+        }
+      }
     },
     'Enter': (e) => {
       if (currentlyEditing) {
@@ -331,6 +367,27 @@ export const ScriptProvider = ({ children }) => {
   // Enable shortcuts only when editing
   useKeyboardShortcuts(shortcuts, true);
 
+  const resizeTextarea = (id) => {
+    const textarea = document.querySelector(`[data-id="${id}"]`);
+    if (textarea) {
+      textarea.style.height = `${textarea.scrollHeight}px`;
+    }
+  };
+
+  const onWindowResize = () => {
+    console.log('window resized');
+    script.forEach(item => {
+      resizeTextarea(item.id);
+    });
+  };
+
+  useEffect(() => {
+    window.addEventListener('resize', onWindowResize);
+    return () => {
+      window.removeEventListener('resize', onWindowResize);
+    };
+  }, []);
+
   const value = {
     script,
     setScript,
@@ -354,6 +411,7 @@ export const ScriptProvider = ({ children }) => {
     itemTypesIcons,
     undo,
     redo,
+    resizeTextarea,
   };
 
   return (
