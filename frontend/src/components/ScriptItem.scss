@@ -155,6 +155,18 @@
   }
 }
 
+// Parenthetical
+.script-item.--parenthetical {
+
+  .script-item__value {
+    font-size: $font-size-base;
+    max-width: 18rem;
+    margin: 0 auto;
+    font-style: italic;
+    text-align: center;
+  }
+}
+
 // Dialog
 .script-item.--dialog {
 

@@ -9,6 +9,7 @@ const ItemTypeSelector = ({ types, type, setType }) => {
     'subtitle': 'quote-left',
     'slugline': 'chess',
     'action': 'align-left',
+    'parenthetical': 'italic',
     'character': 'user',
     'dialog': 'comment',
   }

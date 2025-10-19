@@ -68,6 +68,7 @@ const ScriptItem = (
     'slugline', // Scene header
     'action', // Scene description and action lines
     'character', // Character name
+    'parenthetical', // Actor direction
     'dialog', // Character dialogue
   ];
 
@@ -84,6 +85,8 @@ const ScriptItem = (
         return 'John walks across the room and picks up the phone.';
       case 'character':
         return 'JOHN';
+      case 'parenthetical':
+        return '(Whispering...)';
       case 'dialog':
         return 'What are you doing here?';
       default:
