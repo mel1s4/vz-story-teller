@@ -1,15 +1,19 @@
 <?php
 /**
  * Plugin Name: VZ Story Teller
- * Plugin URI: https://example.com/vz-story-teller
- * Description: Write your scripts and create animatics directly on your WordPress website.
- * Version: 0.0.1
+ * Plugin URI: https://wordpress.org/plugins/vz-story-teller/
+ * Description: Write professional screenplays and create animatics directly on your WordPress website. Industry-standard formatting with interactive React editor.
+ * Version: 1.0.0
+ * Requires at least: 5.0
+ * Requires PHP: 7.4
  * Author: Melisa Viroz
  * Author URI: https://melisaviroz.com
  * License: GPL v2 or later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain: vz-story-teller
  * Domain Path: /languages
+ * Network: false
+ * Update URI: https://wordpress.org/plugins/vz-story-teller/
  */
 
 // Exit if accessed directly
@@ -361,7 +365,11 @@ add_filter('rest_pre_dispatch', 'vz_story_teller_disable_rest_api', 10, 3);
 
 
 // add filter to the view single page template to add the script editor
-function vz_story_teller_add_script_editor_to_single_page_template($template) {
+function vz_story_teller_add_script_editor_to_single_page_template() {
+  global $post;
+  if ($post->post_type !== 'vz_script') {
+    return;
+  }
   include 'template-print-script.php';
   die();
 }
